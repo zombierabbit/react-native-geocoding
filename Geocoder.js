@@ -5,16 +5,13 @@ let API_KEY;
  */
 let Geocoder;
 export default Geocoder = {
-	options : {},
-	
 	/**
 	 * Initialize the module.
 	 * @param {String} apiKey The api key of your application in google.
 	 * @see https://developers.google.com/maps/documentation/geocoding/intro#geocoding
 	 */
-	init(apiKey, options){
+	init(apiKey){
 		API_KEY = apiKey;
-		this.options = options || {};
 	},
 
 	/**
@@ -45,7 +42,7 @@ export default Geocoder = {
 	 * @returns {Promise.<Object>} Object containing informations about the place at the coordinates.
 	 * @see https://developers.google.com/maps/documentation/geocoding/intro#GeocodingResponses
 	 */
-	async from(...params) {
+	async from(params) {
 		// check api key
 		if (!Geocoder.isInit)
 			throw {
@@ -54,24 +51,15 @@ export default Geocoder = {
 			};
 
 		// --- convert parameters ---
-		let queryParams;
+		var queryParams = {};
 
 		// (latitude, longitude)
-		if (!isNaN(params[0]) && !isNaN(params[1]))
-			queryParams = {latlng : `${params[0]},${params[1]}`};
-
-		// [latitude, longitude]
-		else if (params[0] instanceof Array)
-			queryParams = {latlng : `${params[0][0]},${params[0][1]}`};
-
-		// {latitude, longitude}  or {lat, lng}
-		else if (params[0] instanceof Object)
-			queryParams = {latlng : `${params[0].lat || params[0].latitude},${params[0].lng || params[0].longitude}`};
+		if ((!isNaN(params.lat) || !isNaN(params.latitude)) && (!isNaN(params.lng) || isNAN(parmas.longitude)))
+			queryParams.latlng = `${params.lat || params.latitude},${params.lng || params.longitude}`;
 
 		// address
-		else if (typeof params[0] === 'string')
-			queryParams = {address : params[0]};
-
+		if (params.address)
+			queryParams.address = params.address;
 
 		// --- start geocoding ---
 
@@ -84,11 +72,12 @@ export default Geocoder = {
 			};
 
 		queryParams.key = API_KEY;
-		if (this.options.language)
-			queryParams.language = this.options.language;
 
 		// build url
-		const url = `https://maps.google.com/maps/api/geocode/json?${toQueryParams(queryParams)}`;
+		var url = 'https://maps.google.com/maps/api/geocode/json?' + toQueryParams(queryParams);
+
+		if(params.country)
+			url += "&components=country:" + params.country
 
 		let response, data;
 
